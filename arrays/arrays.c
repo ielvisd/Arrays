@@ -108,11 +108,25 @@ void arr_append(Array *arr, char *element) {
 
   // Resize the array if the number of elements is over capacity
   // or throw an error if resize isn't implemented yet.
+  if (arr->capacity <= arr->count) {
+    fprintf(stderr, "IndexError: Index is out of range");
+    return;
+  }
 
   // Copy the element and add it to the end of the array
+  // strdup is the same as malloc/strcopy allocates new block of memory that is 
+  // the same size as the string and copies all the bytes from one to the other
+  char *new_element = strdup(element);
+  arr->elements[arr->count] = new_element;
+
+  // The following line would be incorrect because it that would just be pointing 
+  // to the original element which would result in an invalid array if that element 
+  // ever gets deleted/changed. Might be what you want but copying to be safe. 
+  // char *new_element = element
 
   // Increment count by 1
-
+  arr->count++;
+  
 }
 
 /*****
