@@ -23,8 +23,13 @@ Array *create_array (int capacity) {
   // Allocate memory for the Array struct
   Array *arr = malloc(sizeof(Array));
   // Set initial values for capacity and count
+  arr->capacity = capacity;
+  arr->count = 0;
 
   // Allocate memory for elements
+  arr->elements = malloc(capacity * sizeof(char *));
+
+  return arr;
 
 }
 
@@ -146,6 +151,9 @@ int main(void)
 {
 
   Array *arr = create_array(1);
+
+  //Check if capacity & count are set correctly
+  printf("%d, %d\n", arr->capacity, arr->count);
 
   arr_insert(arr, "STRING1", 0);
   arr_append(arr, "STRING4");
