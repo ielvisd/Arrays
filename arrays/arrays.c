@@ -23,10 +23,14 @@ Array *create_array (int capacity) {
   // Allocate memory for the Array struct
   Array *arr = malloc(sizeof(Array));
   // Set initial values for capacity and count
+  // arr->capacity is the same as (*arr).capacity (point to struct's things not arr's)
+
+  // if pointer to struct = ->
+  // if struct itself = . 
   arr->capacity = capacity;
   arr->count = 0;
 
-  // Allocate memory for elements
+  // Allocate memory for elements (the individual arrays)
   arr->elements = malloc(capacity * sizeof(char *));
 
   return arr;
@@ -39,7 +43,14 @@ Array *create_array (int capacity) {
  *****/
 void destroy_array(Array *arr) {
 
-  // Free all elements
+  // Free all elements, first each item, then the element, then array
+  // bc we allocate memory with strdup so we need to free that
+  for (int i = 0; i < arr->count; i++) {
+    if (arr->elements[i] != '/0') {
+    free(arr->elements[i]);
+    }
+  }
+
   free(arr->elements);
 
   // Free array
@@ -79,8 +90,13 @@ void resize_array(Array *arr) {
 char *arr_read(Array *arr, int index) {
 
   // Throw an error if the index is greater or equal to than the current count
+  if (index >= arr->count) {
+    printf("Error: index out of range");
+    return NULL;
+  }
 
   // Otherwise, return the element at the given index
+  return arr->elements[index];
 }
 
 
@@ -109,6 +125,8 @@ void arr_append(Array *arr, char *element) {
   // Resize the array if the number of elements is over capacity
   // or throw an error if resize isn't implemented yet.
   if (arr->capacity <= arr->count) {
+    // resize_array(arr) 
+    // Can add this when resize_array is implemented. 
     fprintf(stderr, "IndexError: Index is out of range");
     return;
   }
@@ -126,12 +144,12 @@ void arr_append(Array *arr, char *element) {
 
   // Increment count by 1
   arr->count++;
-  
+
 }
 
 /*****
- * Remove the first occurence of the given element from the array,
- * then shift every element after that occurence to the left one slot.
+ * Remove the first occurrence of the given element from the array,
+ * then shift every element after that occurrence to the left one slot.
  *
  * Throw an error if the value is not found.
  *****/
