@@ -21,10 +21,20 @@ typedef struct Array {
  *****/
 Array *create_array (int capacity) {
   // Allocate memory for the Array struct
-
+  Array *arr = malloc(sizeof(Array));
   // Set initial values for capacity and count
+  // arr->capacity is the same as (*arr).capacity (point to struct's things not arr's)
 
-  // Allocate memory for elements
+  // if pointer to struct = ->
+  // if struct itself = . 
+  arr->capacity = capacity;
+  arr->count = 0;
+
+  // Allocate memory for elements (the individual arrays)
+  arr->elements = malloc(capacity * sizeof(char *));
+  // arr ->elements = calloc(capacity, sizeof(char *))
+
+  return arr;
 
 }
 
@@ -34,9 +44,18 @@ Array *create_array (int capacity) {
  *****/
 void destroy_array(Array *arr) {
 
-  // Free all elements
+  // Free all elements, first each item, then the element, then array
+  // bc we allocate memory with strdup so we need to free that
+  for (int i = 0; i < arr->count; i++) {
+    if (arr->elements[i] != '/0') {
+    free(arr->elements[i]);
+    }
+  }
+
+  free(arr->elements);
 
   // Free array
+  free(arr);
 
 }
 
@@ -47,12 +66,22 @@ void destroy_array(Array *arr) {
 void resize_array(Array *arr) {
 
   // Create a new element storage with double capacity
+  int new_capacity = arr->capacity * 2;
 
   // Copy elements into the new storage
+  char **new_elements = calloc(new_capacity, sizeof(char *));
+
+  for (int i = 0; i < arr->count; i++) {
+    new_elements[i] = arr->elements[i];
+  }
 
   // Free the old elements array (but NOT the strings they point to)
+  free(arr->elements);
 
   // Update the elements and capacity to new values
+
+  arr->elements = new_elements;
+  arr->capacity = new_capacity;
 
 }
 
@@ -72,8 +101,13 @@ void resize_array(Array *arr) {
 char *arr_read(Array *arr, int index) {
 
   // Throw an error if the index is greater or equal to than the current count
+  if (index >= arr->count) {
+    printf("Error: index out of range\n");
+    return NULL;
+  }
 
   // Otherwise, return the element at the given index
+  return arr->elements[index];
 }
 
 
@@ -83,14 +117,30 @@ char *arr_read(Array *arr, int index) {
 void arr_insert(Array *arr, char *element, int index) {
 
   // Throw an error if the index is greater than the current count
+  // count is the # of elements in the array
+  if (index > arr->count) {
+    printf("IndexError: Index %d, out of range\n", index);
+    return;
+  }
 
   // Resize the array if the number of elements is over capacity
+  if (arr->capacity <= arr->count) {
+    // printf("resize the array\n");
+    resize_array(arr);
+  }
 
   // Move every element after the insert index to the right one position
+  for (int i = arr->count; i > index; i--) {
+    arr->elements[i] = arr->elements[i-1];
+  }
 
   // Copy the element and add it to the array
+  char *new_element = strdup(element);
+  arr->elements[index] = new_element;
+
 
   // Increment count by 1
+  arr->count++;
 
 }
 
@@ -101,27 +151,61 @@ void arr_append(Array *arr, char *element) {
 
   // Resize the array if the number of elements is over capacity
   // or throw an error if resize isn't implemented yet.
+  if (arr->capacity <= arr->count) {
+    resize_array(arr);
+    // Can add this when resize_array is implemented. 
+    // fprintf(stderr, "IndexError: Index is out of range\n");
+  }
 
   // Copy the element and add it to the end of the array
+  // strdup is the same as malloc/strcopy allocates new block of memory that is 
+  // the same size as the string and copies all the bytes from one to the other
+  char *new_element = strdup(element);
+  arr->elements[arr->count] = new_element;
+
+  // The following line would be incorrect because it that would just be pointing 
+  // to the original element which would result in an invalid array if that element 
+  // ever gets deleted/changed. Might be what you want but copying to be safe. 
+  // char *new_element = element
 
   // Increment count by 1
+  arr->count++;
 
 }
 
 /*****
- * Remove the first occurence of the given element from the array,
- * then shift every element after that occurence to the left one slot.
+ * Remove the first occurrence of the given element from the array,
+ * then shift every element after that occurrence to the left one slot.
  *
  * Throw an error if the value is not found.
  *****/
 void arr_remove(Array *arr, char *element) {
-
-  // Search for the first occurence of the element and remove it.
+  int removed = 0;
+  // Search for the first occurrence of the element and remove it.
   // Don't forget to free its memory!
-
   // Shift over every element after the removed element to the left one position
 
+    for (int i =0; i<arr->count; i++) {
+
+    if (removed) {
+      arr->elements[i-1] = arr->elements[i];
+    }
+    else if ( strcmp(arr->elements[i], element) == 0) {
+
+      free(arr->elements[i]);
+      removed = 1;
+    }
+
+  }
+
   // Decrement count by 1
+      if (removed) {
+      arr->count--;
+      arr->elements[arr->count] = NULL;
+    }
+    else {
+      printf("ValueError: element not in array");
+    }
 
 }
 
@@ -146,6 +230,9 @@ int main(void)
 {
 
   Array *arr = create_array(1);
+
+  //Check if capacity & count are set correctly
+  printf("%d, %d\n", arr->capacity, arr->count);
 
   arr_insert(arr, "STRING1", 0);
   arr_append(arr, "STRING4");
